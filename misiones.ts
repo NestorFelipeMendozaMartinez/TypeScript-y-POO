@@ -80,7 +80,7 @@ class Jugador {
 }
 
 // 🔹 Uso del sistema
-let jugador1 = new Jugador("Link", 5);
+let jugador1 = new Jugador("uno", 5);
 
 let m1 = new MisionPrincipal("Derrotar al dragón", "Debes eliminar al dragón que amenaza la aldea", 500);
 let m2 = new MisionSecundaria("Recolectar hierbas", "Consigue 10 hierbas medicinales", 100);

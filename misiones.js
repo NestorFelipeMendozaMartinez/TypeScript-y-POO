@@ -98,7 +98,7 @@ var Jugador = /** @class */ (function () {
     return Jugador;
 }());
 // 🔹 Uso del sistema
-var jugador1 = new Jugador("Link", 5);
+var jugador1 = new Jugador("uno", 5);
 var m1 = new MisionPrincipal("Derrotar al dragón", "Debes eliminar al dragón que amenaza la aldea", 500);
 var m2 = new MisionSecundaria("Recolectar hierbas", "Consigue 10 hierbas medicinales", 100);
 jugador1.asignarMision(m1);
