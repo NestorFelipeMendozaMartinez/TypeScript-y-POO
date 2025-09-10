@@ -1,76 +1,88 @@
-// 🔹 Abstracción: Clase abstracta base para todas las misiones
+import * as readline from "readline";
+
+// 🔹 Clase abstracta (abstracción)
 abstract class Mision {
   protected titulo: string;
-  protected descripcion: string;
   protected recompensa: number;
   protected completada: boolean = false;
 
-  constructor(titulo: string, descripcion: string, recompensa: number) {
+  constructor(titulo: string, recompensa: number) {
     this.titulo = titulo;
-    this.descripcion = descripcion;
     this.recompensa = recompensa;
   }
 
-  // Método abstracto que cada misión deberá implementar
-  abstract iniciar(): void;
+  abstract iniciar(): void; // polimorfismo
 
-  // Encapsulación: uso de getter/setter para la recompensa
+  completar(): void {
+    this.completada = true;
+    console.log(`✅ Misión "${this.titulo}" completada! Recompensa: ${this.recompensa} XP`);
+  }
+
+  get getTitulo(): string {
+    return this.titulo;
+  }
+
   get getRecompensa(): number {
     return this.recompensa;
   }
 
-  set setRecompensa(nuevaRecompensa: number) {
-    if (nuevaRecompensa > 0) {
-      this.recompensa = nuevaRecompensa;
-    }
-  }
-
-  completar(): void {
-    this.completada = true;
-    console.log(`✅ Misión "${this.titulo}" completada! Has ganado ${this.recompensa} puntos.`);
+  get estaCompletada(): boolean {
+    return this.completada;
   }
 }
 
-// 🔹 Herencia + Polimorfismo: dos tipos de misiones distintas
+// 🔹 Herencia: Misiones específicas
 class MisionPrincipal extends Mision {
   iniciar(): void {
-    console.log(`🚀 Misión Principal "${this.titulo}" iniciada: ${this.descripcion}`);
+    console.log(`🚀 Iniciando misión principal: ${this.getTitulo}`);
   }
 }
 
 class MisionSecundaria extends Mision {
   iniciar(): void {
-    console.log(`🛡️ Misión Secundaria "${this.titulo}" iniciada: ${this.descripcion}`);
+    console.log(`🛡️ Iniciando misión secundaria: ${this.getTitulo}`);
   }
 }
 
-// 🔹 Composición: un jugador tiene misiones
+// 🔹 Clase Jugador (encapsulación + composición)
 class Jugador {
-  public nombre: string;
-  private nivel: number;
   private experiencia: number = 0;
   private misiones: Mision[] = [];
 
-  constructor(nombre: string, nivel: number) {
-    this.nombre = nombre;
-    this.nivel = nivel;
+  constructor(public nombre: string) {}
+
+  asignarMision(m: Mision): void {
+    this.misiones.push(m);
+    console.log(`🎯 Nueva misión asignada: ${m.getTitulo}`);
   }
 
-  asignarMision(mision: Mision): void {
-    this.misiones.push(mision);
-    console.log(`🎯 Misión asignada al jugador ${this.nombre}: "${mision.constructor.name}"`);
+  verMisiones(): void {
+    console.log("\n📜 Lista de Misiones:");
+    this.misiones.forEach((m, i) => {
+      console.log(
+        `${i + 1}. ${m.getTitulo} | Recompensa: ${m.getRecompensa} XP | Estado: ${
+          m.estaCompletada ? "✅ Completada" : "⏳ Pendiente"
+        }`
+      );
+    });
   }
 
-  iniciarMision(index: number): void {
-    if (this.misiones[index]) {
-      this.misiones[index].iniciar();
+  iniciarMision(indice: number): void {
+    const mision = this.misiones[indice];
+    if (mision && !mision.estaCompletada) {
+      mision.iniciar();
+    } else {
+      console.log("⚠️ Esa misión no existe o ya fue completada.");
     }
   }
 
-  completarMision(index: number): void {
-    if (this.misiones[index]) {
-      this.misiones[index].completar();
-      this.experiencia += this.misiones[index].getRecompensa;
+  completarMision(indice: number): void {
+    const mision = this.misiones[indice];
+    if (mision && !mision.estaCompletada) {
+      mision.completar();
+      this.experiencia += mision.getRecompensa;
+    } else {
+      console.log("⚠️ Esa misión no existe o ya fue completada.");
     }
   }
 
@@ -79,19 +91,58 @@ class Jugador {
   }
 }
 
-// 🔹 Uso del sistema
-let jugador1 = new Jugador("uno", 5);
+// 🔹 Simulador con menú interactivo
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
-let m1 = new MisionPrincipal("Derrotar al dragón", "Debes eliminar al dragón que amenaza la aldea", 500);
-let m2 = new MisionSecundaria("Recolectar hierbas", "Consigue 10 hierbas medicinales", 100);
+let jugador = new Jugador("Link");
+jugador.asignarMision(new MisionPrincipal("Derrotar al dragón", 500));
+jugador.asignarMision(new MisionSecundaria("Recolectar hierbas", 100));
 
-jugador1.asignarMision(m1);
-jugador1.asignarMision(m2);
+function mostrarMenu() {
+  console.log(`
+===== 🎮 GESTOR DE MISIONES =====
+1. Ver misiones
+2. Iniciar misión
+3. Completar misión
+4. Ver experiencia
+0. Salir
+`);
+  rl.question("Elige una opción: ", (opcion) => {
+    switch (opcion) {
+      case "1":
+        jugador.verMisiones();
+        mostrarMenu();
+        break;
+      case "2":
+        rl.question("Número de misión a iniciar: ", (num) => {
+          jugador.iniciarMision(parseInt(num) - 1);
+          mostrarMenu();
+        });
+        break;
+      case "3":
+        rl.question("Número de misión a completar: ", (num) => {
+          jugador.completarMision(parseInt(num) - 1);
+          mostrarMenu();
+        });
+        break;
+      case "4":
+        console.log(`⭐ Experiencia total: ${jugador.getExperiencia}`);
+        mostrarMenu();
+        break;
+      case "0":
+        console.log("👋 Saliendo del juego...");
+        rl.close();
+        break;
+      default:
+        console.log("❌ Opción inválida.");
+        mostrarMenu();
+        break;
+    }
+  });
+}
 
-jugador1.iniciarMision(0);
-jugador1.completarMision(0);
-
-jugador1.iniciarMision(1);
-jugador1.completarMision(1);
-
-console.log(`⭐ Experiencia total del jugador ${jugador1.nombre}: ${jugador1.getExperiencia}`);
+// 🔹 Iniciar simulador
+mostrarMenu();
